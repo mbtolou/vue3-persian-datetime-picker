@@ -1,4 +1,7 @@
-$prefix: vpd-; //shorted to reduce the css size
+@use "sass:math";
+@use "sass:color";
+
+$prefix: vpd-;
 $width: 316px;
 
 $day-size: 40px;

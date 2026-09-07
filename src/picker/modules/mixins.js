@@ -1,31 +1,31 @@
-import { clone } from './utils'
+import { clone } from "./utils.js";
 
 /**
  * Model Mixin
  */
 export const modelMixin = {
   props: {
-    modelValue: { type: [String, Number, Array, Object, Boolean], default: '' }
+    modelValue: { type: [String, Number, Array, Object, Boolean], default: "" }
   },
-  emits: ['update:modelValue'],
+  emits: ["update:modelValue"],
   data() {
     return {
-      selfValue: ''
-    }
+      selfValue: ""
+    };
   },
   watch: {
     modelValue: {
       handler(val) {
-        if (this.selfValue !== val) this.selfValue = val
+        if (this.selfValue !== val) this.selfValue = val;
       },
       immediate: true,
       deep: true
     },
     selfValue(val) {
-      if (val !== this.modelValue) this.$emit('update:modelValue', val)
+      if (val !== this.modelValue) this.$emit("update:modelValue", val);
     }
   }
-}
+};
 
 /**
  * Change route when visible changes
@@ -35,42 +35,42 @@ export const popupRouteChanger = {
   data() {
     return {
       routerQueryName: null
-    }
+    };
   },
   mounted() {
-    this.initRouter()
+    this.initRouter();
   },
   methods: {
     initRouter() {
-      const isSet = prop => prop || typeof prop === 'string'
-      const useRouter = this.useRouter
+      const isSet = (prop) => prop || typeof prop === "string";
+      const useRouter = this.useRouter;
 
       if (!isSet(useRouter) || this.isPopover || this.inline || !this.$router)
-        return
+        return;
 
-      this.$watch('visible', this.onVisibleChange)
+      this.$watch("visible", this.onVisibleChange);
       this.$watch(() => this.$route.query, this.onRouteChange, {
         deep: true,
         immediate: true
-      })
+      });
 
       this.routerQueryName =
-        typeof useRouter === 'string' && useRouter ? useRouter : this.id
+        typeof useRouter === "string" && useRouter ? useRouter : this.id;
     },
     onVisibleChange(visible) {
-      let currentRoute = this.$route
-      let query = clone(currentRoute.query || {})
+      let currentRoute = this.$route;
+      let query = clone(currentRoute.query || {});
       if (visible) {
-        query[this.routerQueryName] = 'active'
-        this.$router.push({ query })
+        query[this.routerQueryName] = "active";
+        this.$router.push({ query });
       } else if (query[this.routerQueryName]) {
-        this.$router.back()
+        this.$router.back();
       }
     },
     onRouteChange() {
-      let visible = !!this.$route.query[this.routerQueryName]
-      if (visible && this.disabled) return
-      this.visible = visible
+      let visible = !!this.$route.query[this.routerQueryName];
+      if (visible && this.disabled) return;
+      this.visible = visible;
     }
   }
-}
+};

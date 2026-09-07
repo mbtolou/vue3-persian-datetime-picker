@@ -32,7 +32,7 @@
         class="vpd-counter-item"
         v-bind="attributes"
       >
-        <transition name="slideY">
+        <Transition name="slideY">
           <span
             :key="`${item}__${i}_h`"
             :style="{
@@ -40,7 +40,7 @@
             }"
             v-text="formatter(item)"
           />
-        </transition>
+        </Transition>
       </div>
     </div>
     <btn
@@ -54,9 +54,9 @@
 </template>
 
 <script>
-import Btn from '../Btn'
-import Arrow from '../Arrow'
-import { modelMixin } from '../../modules/mixins'
+import Btn from '../Btn.vue'
+import Arrow from '../Arrow.vue'
+import { modelMixin } from '../../modules/mixins.js'
 
 export default {
   name: 'TimeColumn',

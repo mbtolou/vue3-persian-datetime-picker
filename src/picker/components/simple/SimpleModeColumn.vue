@@ -10,7 +10,8 @@
 </template>
 
 <script>
-import { scrollIntoCenter } from '../../modules/utils'
+import { scrollIntoCenter } from '../../modules/utils.js'
+
 export default {
   name: 'SimpleModeColumn',
   props: {
@@ -44,16 +45,12 @@ export default {
             this.$refs.content.querySelector(
               '.vpd-addon-list-item:not([disabled])'
             )
-          // we want to scroll multiple containers at same time
-          // the native `scrollIntoView` method does not work in this case,
-          // so we use this method
           if (activeElement)
             scrollIntoCenter(activeElement, duration, () => {
               this.isMounted = true
             })
         })
       } catch (e) {
-        // eslint-disable-next-line
         console.warn(e)
       }
     }

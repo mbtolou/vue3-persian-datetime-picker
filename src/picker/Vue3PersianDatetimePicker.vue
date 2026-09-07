@@ -60,7 +60,7 @@
       :value="altFormatted"
     />
 
-    <transition :name="isPopover ? '' : 'vpd-fade-scale'">
+    <Transition :name="isPopover ? '' : 'vpd-fade-scale'">
       <div
         v-if="visible"
         ref="picker"
@@ -90,25 +90,25 @@
                 :class="['vpd-year-label', directionClass]"
                 @click="goStep('y')"
               >
-                <transition name="slideY">
+                <Transition name="slideY">
                   <span :key="selectedDate.xYear()">
                     <slot name="header-year" v-bind="{ vm, selectedDate }">
                       {{ convertToLocaleNumber(selectedDate.xYear()) }}
                     </slot>
                   </span>
-                </transition>
+                </Transition>
               </div>
               <div
                 v-if="type !== 'year-month'"
                 :class="['vpd-date', directionClass]"
               >
-                <transition name="slideY">
+                <Transition name="slideY">
                   <span :key="formattedDate">
                     <slot name="header-date" v-bind="{ vm, formattedDate }">
                       {{ convertToLocaleNumber(formattedDate) }}
                     </slot>
                   </span>
-                </transition>
+                </Transition>
               </div>
               <slot
                 v-if="locales.length > 1"
@@ -197,7 +197,7 @@
                         />
                       </slot>
                     </button>
-                    <transition name="slideX">
+                    <Transition name="slideX">
                       <div
                         :key="date.xMonth()"
                         class="vpd-month-label"
@@ -212,7 +212,7 @@
                           />
                         </slot>
                       </div>
-                    </transition>
+                    </Transition>
                   </div>
                   <div
                     class="vpd-clearfix"
@@ -234,7 +234,7 @@
                       :style="{ height: month.length * 40 + 'px' }"
                       @mouseleave="hoveredItem = null"
                     >
-                      <transition name="slideX" :class="directionClassDate">
+                      <Transition name="slideX" :class="directionClassDate">
                         <div :key="date.xMonth()">
                           <div
                             v-for="(m, mi) in monthDays"
@@ -281,14 +281,14 @@
                             </div>
                           </div>
                         </div>
-                      </transition>
+                      </Transition>
                     </div>
                   </div>
                 </template>
 
                 <div v-else style="height:250px" />
 
-                <transition name="fade">
+                <Transition name="fade">
                   <div
                     v-if="hasStep('y')"
                     v-show="currentStep === 'y'"
@@ -321,9 +321,9 @@
                       </div>
                     </div>
                   </div>
-                </transition>
+                </Transition>
 
-                <transition name="fade">
+                <Transition name="fade">
                   <div
                     v-if="hasStep('m')"
                     v-show="currentStep === 'm'"
@@ -359,9 +359,9 @@
                       </div>
                     </div>
                   </div>
-                </transition>
+                </Transition>
 
-                <transition name="fade">
+                <Transition name="fade">
                   <span
                     v-if="
                       steps.length > 1 && currentStep !== 'd' && hasStep('d')
@@ -371,10 +371,10 @@
                   >
                     <slot name="close-btn" v-bind="{ vm }">x</slot>
                   </span>
-                </transition>
+                </Transition>
               </template>
 
-              <transition name="fade">
+              <Transition name="fade">
                 <time-section
                   v-if="hasStep('t')"
                   v-show="currentStep === 't'"
@@ -391,7 +391,7 @@
                   :selected-dates="selectedDates"
                   :convert-to-locale-number="convertToLocaleNumber"
                 />
-              </transition>
+              </Transition>
 
               <template v-if="autoSubmit && !hasStep('t')">
                 <br v-if="!simple" />
@@ -440,23 +440,23 @@
           </div>
         </div>
       </div>
-    </transition>
+    </Transition>
   </span>
 </template>
 
 <script>
-import './assets/scss/style.scss'
-import Arrow from './components/Arrow'
-import TimeIcon from './components/TimeIcon'
-import CalendarIcon from './components/CalendarIcon'
-import LocaleChange from './components/LocaleChange'
-import TimeSection from './components/time/TimeSection'
-import SimpleMode from './components/simple/SimpleMode'
+import Arrow from './components/Arrow.vue'
+import TimeIcon from './components/TimeIcon.vue'
+import CalendarIcon from './components/CalendarIcon.vue'
+import LocaleChange from './components/LocaleChange.vue'
+import TimeSection from './components/time/TimeSection.vue'
+import SimpleMode from './components/simple/SimpleMode.vue'
 
-import CoreModule from './modules/core'
-import { popupRouteChanger } from './modules/mixins'
-import { cloneDates, extend, isSameDay } from './modules/utils'
-import { addLiveEvent } from './modules/utils'
+import CoreModule from './modules/core.js'
+import { popupRouteChanger } from './modules/mixins.js'
+import { cloneDates, extend, isSameDay, addLiveEvent } from './modules/utils.js'
+
+import './assets/scss/style.scss'
 
 export default {
   name: 'Vue3PersianDatetimePicker',
@@ -470,405 +470,47 @@ export default {
   },
   mixins: [popupRouteChanger],
   props: {
-    /**
-     * Default input value
-     * @type Number String
-     * @default []
-     * @example 1396/08/01 22:45 | 2017/07/07 20:45 | {unix} | 20:45
-     */
     modelValue: { type: [Number, String, Date, Array], default: '' },
-
-    /**
-     * Initial value of picker (if value is empty)
-     * @type Number String
-     * @default []
-     * @example 1370/01/01 22:45 | 2017/01/01 20:45 | {unix} | 20:45
-     * @version 1.0.9
-     */
     initialValue: { type: [Number, String], default: '' },
-
-    /**
-     * Format for {value}
-     * @type String
-     * @default Null
-     * @example jYYYY/jMM/jDD HH:mm | YYYY/MM/DD HH:mm | x | unix | HH:mm
-     * @if empty {inputFormat} = {format}
-     * @see https://github.com/jalaali/moment-jalaali
-     */
     inputFormat: { type: String, default: '' },
-
-    /**
-     * Format only to display the date in the field
-     * @type String
-     * @default Null
-     * @example jYYYY/jMM/jDD HH:mm | YYYY/MM/DD HH:mm | x | unix | HH:mm
-     * @if empty {displayFormat} = {format}
-     * @see https://github.com/jalaali/moment-jalaali
-     */
     displayFormat: { type: String, default: '' },
-
-    /**
-     * Format for output value
-     * @type String
-     * @default Null
-     * @example jYYYY/jMM/jDD HH:mm | YYYY/MM/DD HH:mm | x | date | HH:mm
-     * @if empty, it will be built according to the type of picker:
-     *
-     * --- time:     HH:mm
-     * --- datetime: jYYYY/jMM/jDD HH:mm
-     * --- date:     jYYYY/jMM/jDD
-     * --- year:     jYYYY
-     * --- month:    jMM
-     *
-     * @see https://github.com/jalaali/moment-jalaali
-     */
     format: { type: String, default: '' },
-
-    /**
-     * Step to view on startup
-     * @type String
-     * @default "day"
-     * @supported day | month | year | time
-     * @example year
-     * @desc {year} will show the "year" panel at first
-     */
     view: { type: String, default: 'day' },
-
-    /**
-     * The picker type
-     * @type String
-     * @default "date"
-     * @supported date | datetime | year | month | time
-     */
     type: { type: String, default: 'date' },
-
-    /**
-     * The minimum of selectable period
-     * Based on {inputFormat}
-     * @type String
-     * @default Null
-     * @example 1396/08/01 22:45 | 22:45
-     */
     min: { type: [String], default: '' },
-
-    /**
-     * The maximum of selectable period
-     * Based on {inputFormat}
-     * @type String
-     * @default Null
-     * @example 1396/08/01 22:45 | 22:45
-     */
     max: { type: [String], default: '' },
-
-    /**
-     * Editable input or just readonly
-     * @type Boolean
-     * @default False
-     * @if false, the picker will shown on input focus
-     * @if true, the picker will shown on label click
-     * @note if use <... :editable="true"> with <... :element="...">
-     *     then you have to control the <... :show="true or false">
-     */
     editable: { type: Boolean, default: false },
-
-    /**
-     * @deprecated
-     * The specified input element ID
-     * @type String
-     * @default Undefined
-     * @desc Sometimes you don't want to use picker default input,
-     * so you can use our own input element with "id" attribute
-     * and use <... element="the_id_of_input">
-     */
     element: { type: String, default: undefined },
-
-    /**
-     * New version of `element`
-     * @type String (DOMString containing a selector list)
-     * @desc use this instead of `element`,
-     * this custom input does not need v-model, and it will be automatically updated
-     * also supports `display-format`
-     * @example .my-custom-input | #my-custom-input | div.foo > input
-     * @version 2.10.0
-     */
     customInput: { type: String, default: undefined },
-
-    /**
-     * The form input name when not using {element}
-     * @type String
-     * @default Undefined
-     */
     name: { type: String, default: undefined },
-
-    /**
-     * The form input className when not using {element}
-     * @type String
-     * @default "form-control"
-     */
     inputClass: { type: String, default: 'form-control' },
-
-    /**
-     * The form input placeholder when not using {element}
-     * @type String
-     * @default Null
-     */
     placeholder: { type: String, default: '' },
-
-    /**
-     * The name of hidden input element
-     * @type String
-     * @default Null
-     * @if empty, the hidden input will not be created
-     */
     altName: { type: String, default: '' },
-
-    /**
-     * Format for hidden input
-     * @type String
-     * @default Null
-     * @example YYYY-MM-DD HH:mm:ss [GMT]ZZ
-     * @if empty, it will be built according to the type of picker:
-     *
-     * --- time:     HH:mm:ss [GMT]ZZ
-     * --- datetime: YYYY-MM-DD HH:mm:ss [GMT]ZZ
-     * --- date:     YYYY-MM-DD
-     * --- year:     YYYY
-     * --- month:    MM
-     */
     altFormat: { type: String, default: '' },
-
-    /**
-     * Show or hide the picker
-     * @type Boolean
-     * @default False
-     */
     show: { type: Boolean, default: false },
-
-    /**
-     * Primary color of picker
-     * @type String
-     */
     color: { type: String, default: '#417df4' },
-
-    /**
-     * Auto submit and hide picker when date selected
-     * @type Boolean
-     * @default False
-     */
     autoSubmit: { type: Boolean, default: false },
-
-    /**
-     * Auto submit when clicking the wrapper
-     * @type Boolean
-     * @default false
-     * @version 1.0.6
-     */
     wrapperSubmit: { type: Boolean, default: false },
-
-    /**
-     * Place to append picker
-     * @type String query selector
-     * @default null
-     * @desc If you want to append picker to another container like 'body',
-     * pass the container as append-to="body",  append-to="#app",  append-to="#my-container"
-     * @example 'body', '.main-container', '#app' ...
-     * @version 1.1.1
-     */
     appendTo: { type: String, default: null },
-
-    /**
-     * Disable or enable the datepicker
-     * @type Boolean
-     * @default false
-     * @version 1.1.4
-     */
     disabled: { type: Boolean, default: false },
-
-    /**
-     * Disabling
-     * @type Array, String, Function, RegExp
-     * @default undefined
-     * @desc disable some dates
-     * @example ['1397/02/02', '1390/10/10'] - "1397/05/20" - /1397\/05\/(.*)/ ...
-     * @version 1.1.4
-     */
     disable: { type: [Array, String, Function, RegExp], default: undefined },
-
-    /**
-     * Label
-     * @type String
-     * @version 1.1.4
-     */
     label: { type: String, default: '' },
-
-    /**
-     * Highlight items
-     * @type Function
-     * @desc This prop accepts only function that return an object of attributes.
-     * @version 1.1.5
-     */
     highlight: { type: Function, default: null },
-
-    /**
-     * Change minutes by step
-     * @type Number
-     * @default 1
-     * @version: 1.1.6
-     */
     jumpMinute: { type: Number, default: 1 },
-
-    /**
-     * Round minutes when jumpMinute is grater than 1
-     * @example when jumpMinute = 15 thin will result: 13:00, 13:15, 13:30, 13:45 ...
-     * @type Boolean
-     * @default false
-     * @version: 1.1.6
-     */
     roundMinute: { type: Boolean, default: false },
-
-    /**
-     * Show clear button
-     * @type Boolean
-     * @default false
-     * @version 1.1.6
-     */
     clearable: { type: Boolean, default: false },
-
-    /**
-     * Inline mode
-     * @type Boolean
-     * @default false
-     * @version 1.1.6
-     */
     inline: { type: Boolean, default: false },
-
-    /**
-     * Locales config ("fa" for jalali and "en" for gregorian)
-     * @type String
-     * @default fa
-     * @example fa | en | fa,en | en,fa
-     * @supported fa,en
-     * @version 2.0.0
-     */
     locale: { type: String, default: 'fa' },
-
-    /**
-     * Locale configuration
-     * @type Object
-     * @default {}
-     * @version 2.0.0
-     * @example
-     * {
-     *  fa: {
-     *      dow: 6,             --first day of week
-     *      dir: 'rtl',         --language direction
-     *      lang: {
-     *           label:     "شمسی",
-     *           submit:    "تایید",
-     *           cancel:    "انصراف",
-     *           now:       "اکنون",
-     *           nextMonth: "ماه بعد",
-     *           prevMonth: "ماه قبل",
-     *      }
-     *  },
-     *  en: { ... }
-     * }
-     */
     localeConfig: { type: Object, default: () => ({}) },
-
-    /**
-     * Timezone configuration
-     * @type String | Boolean | Function
-     * @default false
-     * @example true | false | +03:30 | +04:30
-     * @version 2.1.0
-     */
     timezone: { type: [Boolean, String, Function], default: false },
-
-    /**
-     * Show or hide NOW button
-     * @type Boolean
-     * @default true
-     * @version 2.1.6
-     */
     showNowBtn: { type: Boolean, default: true },
-
-    /**
-     * Convert to locale numbers or not
-     * @type Boolean
-     * @default false
-     * @example <date-picker convert-numbers />
-     * @version 2.3.0
-     */
     convertNumbers: { type: Boolean, default: false },
-
-    /**
-     * Display the time on the front page
-     * @type Boolean
-     * @default false
-     * @example <date-picker compact-time />
-     * @version 2.4.0
-     */
     compactTime: { type: Boolean, default: false },
-
-    /**
-     * Enable or disable range mode
-     * @type Boolean
-     * @default false
-     * @example <date-picker range />
-     * @version 2.5.0
-     */
     range: { type: Boolean, default: false },
-
-    /**
-     * Enable or disable multiple mode
-     * @type Boolean
-     * @default false
-     * @example <date-picker multiple />
-     * @version 2.6.0
-     */
     multiple: { type: Boolean, default: false },
-
-    /**
-     * Enable or disable popover mode
-     * @type Boolean | String
-     * @accepted:
-     *    true | false
-     *    top-left | top-right | bottom-right | bottom-left
-     *    left-top | left-bottom | right-top | right-bottom
-     * @default false
-     * @example <date-picker popover />
-     * @example <date-picker popover="top-left" />
-     * @version 2.6.0
-     */
     popover: { type: [Boolean, String], default: false },
-
-    /**
-     * If you want to change route address in open/close action,
-     * then enable this prop
-     * @type Boolean | String
-     * @default false
-     * @example <date-picker use-router />          => example.com/home?vpd-75454=active
-     * @example <date-picker use-router="foo" />    => example.com/home?vpd-foo=active
-     * @example <date-picker id="bar" use-router /> => example.com/home?vpd-bar=active
-     */
     useRouter: { type: [Boolean, String], default: false },
-
-    /**
-     * Enable or disable simple mode
-     * @type Boolean
-     * @default false
-     * @example <date-picker simple />
-     */
     simple: { type: Boolean, default: false },
-
-    /**
-     * Additional attributes for input element
-     * @type Object
-     * @default null
-     * @example <date-picker :input-attrs="{ foo: 'bar' }" />
-     * @version 2.9.0
-     */
     inputAttrs: { type: Object, default: null }
   },
   emits: [
@@ -1240,7 +882,6 @@ export default {
               let container = document.querySelector(this.appendTo)
               container.appendChild(this.$refs.picker)
             } catch (er) {
-              // eslint-disable-next-line
               console.warn(`Cannot append picker to "${this.appendTo}"!`)
             }
           }
@@ -1306,7 +947,7 @@ export default {
     window.addEventListener('resize', this.onWindowResize, true)
     window.addEventListener('mousedown', this.onWindowClick, true)
   },
-  onBeforeUnmount() {
+  beforeUnmount() {
     window.clearInterval(this.updateNowInterval)
     window.removeEventListener('resize', this.onWindowResize, true)
     window.removeEventListener('mousedown', this.onWindowClick, true)
@@ -1457,7 +1098,6 @@ export default {
     updateDates(payload) {
       if (!payload) payload = this.isDataArray ? [] : ''
 
-      // fix: don't update dates if they are already up to date
       if (this.date.clone && payload.toString() === this.outputValue.toString())
         return
 
@@ -1658,7 +1298,6 @@ export default {
         args.push({ y: 'year', m: 'month', d: 'day', t: 'time' }[k])
         result = fn.apply(null, args)
       } catch (er) {
-        // eslint-disable-next-line
         console.error(er)
       }
       return result
@@ -1707,7 +1346,6 @@ export default {
       if (item === 'y') {
         value = this.core.moment(value, 'jYYYY')
       } else if (item === 'd') {
-        // remove time from format
         format = format.replace(/(H(H?))|(h(h?))?(:?)m(m?)(:?)(s(s?))?/g, '')
       }
       return check(value, value.format(format))
@@ -1782,10 +1420,6 @@ export default {
         let isOnInput = this.$refs.inputGroup.contains(event.target)
         if (isOnPicker) event.preventDefault()
         if (!isOnPicker && !isOnInput) {
-          // setTimeout because:
-          // first read the input value
-          // then process the output
-          // then close the picker
           setTimeout(() => (this.visible = false), this.editable ? 500 : 0)
         }
       }

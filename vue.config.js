@@ -1,33 +1,29 @@
-const webpack = require('webpack')
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
+import { fileURLToPath } from "url";
 
-module.exports = {
-  publicPath: process.env.VUE_APP_PUBLIC_PATH,
-  lintOnSave: false,
-  filenameHashing: true,
-  productionSourceMap: false,
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-  configureWebpack: {
-    plugins: [new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)]
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src")
+    }
   },
-
   css: {
-    sourceMap: process.env.NODE_ENV !== 'production',
-    extract: false
+    preprocessorOptions: {
+      scss: {
+        additionalData: `
+          @import "@/picker/assets/scss/variables";
+          @import "@/picker/assets/scss/transitions";
+        `
+      }
+    }
+  },
+  server: {
+    port: 3000,
+    open: true
   }
-}
-
-if (process.env.npm_lifecycle_event === 'export-common') {
-  module.exports.configureWebpack.externals = {
-    moment: 'moment',
-    'moment-jalaali': 'moment-jalaali'
-  }
-  module.exports.configureWebpack.devtool = ''
-}
-
-if (process.env.npm_lifecycle_event === 'export-umd') {
-  module.exports.configureWebpack.externals = {
-    moment: 'moment',
-    'moment-jalaali': 'moment'
-  }
-  module.exports.configureWebpack.devtool = ''
-}
+});

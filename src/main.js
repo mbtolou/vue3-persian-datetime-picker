@@ -1,7 +1,10 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import Vue3PersianDatetimePicker from "./picker/Vue3PersianDatetimePicker.vue";
 
-createApp(App)
-  .use(router)
-  .mount('#app')
+const app = createApp(App);
+
+app.component("DatePicker", Vue3PersianDatetimePicker);
+app.use(router);
+app.mount("#app");

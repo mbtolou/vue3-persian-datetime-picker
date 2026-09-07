@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import TimeColumn from './TimeColumn'
+import TimeColumn from './TimeColumn.vue'
 
 export default {
   name: 'TimeSection',
@@ -75,8 +75,6 @@ export default {
           time.add({ m })
           if (time.valueOf() !== this.time.valueOf()) {
             this.$emit('update:time', time)
-            // @todo: this line should apply time to current date selection,
-            // not all of them
             this.selectedDates.forEach(d => d.set({ m: time.minute() }))
           }
         }
