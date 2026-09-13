@@ -171,6 +171,18 @@
         />
         <div class="value">مقدار: <code>{{ editableDate || '—' }}</code></div>
       </section>
+
+      <!-- Popup -->
+      <section class="card">
+        <h2>۱۷. پنجره باز (Popup)</h2>
+        <date-picker
+          v-model="editableDate"
+          popover
+          auto-submit
+          placeholder="می‌توانید تایپ کنید"
+        />
+        <div class="value">مقدار: <code>{{ editableDate || '—' }}</code></div>
+      </section>
     </div>
 
     <footer class="footer">
