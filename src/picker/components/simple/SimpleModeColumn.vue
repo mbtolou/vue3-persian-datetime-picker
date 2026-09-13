@@ -9,51 +9,40 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { scrollIntoCenter } from '../../modules/utils.js'
 
-export default {
-  name: 'SimpleModeColumn',
-  props: {
-    label: { type: String, default: null },
-    locale: { type: String, default: null },
-    value: { type: [String, Number], default: null }
-  },
-  data() {
-    return {
-      isMounted: false
-    }
-  },
-  watch: {
-    value() {
-      this.scrollIntoView(200)
-    },
-    locale() {
-      this.scrollIntoView(200)
-    }
-  },
-  mounted() {
-    this.scrollIntoView(0)
-  },
-  methods: {
-    scrollIntoView(duration) {
-      try {
-        this.isMounted = false
-        this.$nextTick(() => {
-          const activeElement =
-            this.$refs.content.querySelector('.vpd-selected') ||
-            this.$refs.content.querySelector(
-              '.vpd-addon-list-item:not([disabled])'
-            )
-          if (activeElement)
-            scrollIntoCenter(activeElement, duration, () => {
-              this.isMounted = true
-            })
+const props = defineProps({
+  label: { type: String, default: null },
+  locale: { type: String, default: null },
+  value: { type: [String, Number], default: null }
+})
+
+const isMounted = ref(false)
+const content = ref(null)
+
+function scrollIntoView(duration) {
+  try {
+    isMounted.value = false
+    nextTick(() => {
+      const el = content.value
+      if (!el) return
+      const activeElement =
+        el.querySelector('.vpd-selected') ||
+        el.querySelector('.vpd-addon-list-item:not([disabled])')
+      if (activeElement) {
+        scrollIntoCenter(activeElement, duration, () => {
+          isMounted.value = true
         })
-      } catch (e) {
-        console.warn(e)
       }
-    }
+    })
+  } catch (e) {
+    console.warn(e)
   }
 }
+
+watch(() => props.value, () => scrollIntoView(200))
+watch(() => props.locale, () => scrollIntoView(200))
+onMounted(() => scrollIntoView(0))
 </script>

@@ -125,68 +125,67 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, getCurrentInstance } from 'vue'
 import LocaleChange from '../LocaleChange.vue'
 import SimpleModeColumn from './SimpleModeColumn.vue'
 
-export default {
-  name: 'SimpleMode',
-  components: { LocaleChange, SimpleModeColumn },
-  props: {
-    visible: { type: Boolean, default: false },
-    multiple: { type: Boolean, default: false },
-    range: { type: Boolean, default: false },
-    lang: { type: Object, default: null },
-    color: { type: String, default: null },
-    hasStep: { type: Function, default: null },
-    years: { type: Array, default: () => [] },
-    months: { type: Array, default: () => [] },
-    monthDays: { type: Array, default: () => [] },
-    selectedDates: { type: Array, default: () => [] },
-    formattedDate: { type: String, default: null },
-    hoveredItem: { type: Date, default: null },
-    locales: { type: Array, default: () => [] },
-    core: { type: Object, default: null },
-    setLocale: { type: Function, default: null },
-    convertToLocaleNumber: { type: Function, default: null }
-  },
-  emits: ['select-day', 'update:hovered-item', 'select-month', 'select-year'],
-  data() {
-    return {
-      vm: this
-    }
-  },
-  computed: {
-    days() {
-      let days = []
-      this.monthDays.forEach(week => {
-        week.forEach(day => {
-          if (day.date) days.push(day)
-        })
-      })
-      return days
-    },
-    selectedYear() {
-      let year = this.years.find(year => year.selected)
-      return year ? year.xFormat('YYYY') : ''
-    },
-    selectedMonth() {
-      let month = this.months.find(month => month.selected)
-      return month ? month.xFormat('MM') : ''
-    },
-    selectedDay() {
-      let day = this.days.find(day => day.selected) || {}
-      return day && day.date ? day.date.getDate() : ''
-    },
-    showHeader() {
-      const selectedDatesLength = this.selectedDates.length
-      return (
-        this.locales.length > 1 ||
-        selectedDatesLength > 1 ||
-        (this.range && selectedDatesLength) ||
-        (this.multiple && selectedDatesLength)
-      )
-    }
-  }
-}
+const props = defineProps({
+  visible: { type: Boolean, default: false },
+  multiple: { type: Boolean, default: false },
+  range: { type: Boolean, default: false },
+  lang: { type: Object, default: null },
+  color: { type: String, default: null },
+  hasStep: { type: Function, default: null },
+  years: { type: Array, default: () => [] },
+  months: { type: Array, default: () => [] },
+  monthDays: { type: Array, default: () => [] },
+  selectedDates: { type: Array, default: () => [] },
+  formattedDate: { type: String, default: null },
+  hoveredItem: { type: [Date, Object], default: null },
+  locales: { type: Array, default: () => [] },
+  core: { type: Object, default: null },
+  setLocale: { type: Function, default: null },
+  convertToLocaleNumber: { type: Function, default: (v) => v }
+})
+
+defineEmits(['select-day', 'update:hovered-item', 'select-month', 'select-year'])
+
+const instance = getCurrentInstance()
+const vm = computed(() => instance?.proxy)
+
+const days = computed(() => {
+  const list = []
+  props.monthDays.forEach((week) => {
+    week.forEach((day) => {
+      if (day.date) list.push(day)
+    })
+  })
+  return list
+})
+
+const selectedYear = computed(() => {
+  const year = props.years.find((y) => y.selected)
+  return year ? year.xFormat('YYYY') : ''
+})
+
+const selectedMonth = computed(() => {
+  const month = props.months.find((m) => m.selected)
+  return month ? month.xFormat('MM') : ''
+})
+
+const selectedDay = computed(() => {
+  const day = days.value.find((d) => d.selected) || {}
+  return day && day.date ? day.date.getDate() : ''
+})
+
+const showHeader = computed(() => {
+  const selectedDatesLength = props.selectedDates.length
+  return (
+    props.locales.length > 1 ||
+    selectedDatesLength > 1 ||
+    (props.range && selectedDatesLength) ||
+    (props.multiple && selectedDatesLength)
+  )
+})
 </script>

@@ -1,56 +1,64 @@
 <template>
-  <div @mousedown="down" @touchstart="down" @mouseup="click"><slot /></div>
+  <div @mousedown="down" @touchstart="down" @mouseup="click">
+    <slot />
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'Btn',
-  emits: ['update', 'fastUpdate'],
-  data() {
-    return {
-      interval: false,
-      timeout: false,
-      intervalDelay: 150
-    }
-  },
-  mounted() {
-    document.addEventListener('mouseup', () => {
-      if (this.timeout || this.interval) this.up()
-    })
-    document.addEventListener('touchend', () => {
-      if (this.timeout || this.interval) this.up()
-    })
-  },
-  methods: {
-    click() {
-      if (!this.interval) {
-        this.$emit('update', 1)
-      }
-    },
-    down() {
-      window.clearTimeout(this.timeout)
-      window.clearInterval(this.interval)
-      this.interval = false
-      this.timeout = window.setTimeout(() => {
-        this.intervalFn()
-      }, 600)
-    },
-    up() {
-      window.clearTimeout(this.timeout)
-      window.clearInterval(this.interval)
-      this.$emit('fastUpdate', false)
-      this.timeout = false
-      this.interval = false
-      this.intervalDelay = 150
-    },
-    intervalFn() {
-      this.interval = window.setTimeout(() => {
-        this.$emit('update', 1)
-        this.$emit('fastUpdate', true)
-        this.intervalFn()
-        if (this.intervalDelay > 30) this.intervalDelay -= 3
-      }, this.intervalDelay)
-    }
-  }
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const emit = defineEmits(['update', 'fastUpdate'])
+
+const interval = ref(null)
+const timeout = ref(null)
+const intervalDelay = ref(150)
+
+const up = () => {
+  if (typeof window === 'undefined') return
+  window.clearTimeout(timeout.value)
+  window.clearInterval(interval.value)
+  emit('fastUpdate', false)
+  timeout.value = null
+  interval.value = null
+  intervalDelay.value = 150
+}
+
+const onDocMouseUp = () => {
+  if (timeout.value || interval.value) up()
+}
+
+onMounted(() => {
+  if (typeof document === 'undefined') return
+  document.addEventListener('mouseup', onDocMouseUp)
+  document.addEventListener('touchend', onDocMouseUp)
+})
+
+onBeforeUnmount(() => {
+  if (typeof document === 'undefined') return
+  document.removeEventListener('mouseup', onDocMouseUp)
+  document.removeEventListener('touchend', onDocMouseUp)
+  up()
+})
+
+const click = () => {
+  if (!interval.value) emit('update', 1)
+}
+
+const intervalFn = () => {
+  if (typeof window === 'undefined') return
+  interval.value = window.setTimeout(() => {
+    emit('update', 1)
+    emit('fastUpdate', true)
+    intervalFn()
+    if (intervalDelay.value > 30) intervalDelay.value -= 3
+  }, intervalDelay.value)
+}
+
+const down = () => {
+  if (typeof window === 'undefined') return
+  window.clearTimeout(timeout.value)
+  window.clearInterval(interval.value)
+  interval.value = null
+  timeout.value = window.setTimeout(() => intervalFn(), 600)
 }
 </script>

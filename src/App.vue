@@ -5,5 +5,5 @@
 </template>
 
 <script setup>
-// No additional logic needed
+// App shell — Vue 3 Composition API
 </script>

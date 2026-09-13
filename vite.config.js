@@ -10,17 +10,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src")
-    }
-  },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        // additionalData can be added if needed
-      }
-    }
+    },
+    // Help moment-jalaali resolve correctly with Vite
+    mainFields: ["browser", "module", "main", "jsnext:main", "jsnext"]
   },
   server: {
     port: 3000,
     open: true
+  },
+  optimizeDeps: {
+    include: ["moment", "moment-jalaali"]
   }
 });

@@ -452,13 +452,14 @@ import LocaleChange from './components/LocaleChange.vue'
 import TimeSection from './components/time/TimeSection.vue'
 import SimpleMode from './components/simple/SimpleMode.vue'
 
+import { defineComponent } from 'vue'
 import CoreModule from './modules/core.js'
 import { popupRouteChanger } from './modules/mixins.js'
 import { cloneDates, extend, isSameDay, addLiveEvent } from './modules/utils.js'
 
 import './assets/scss/style.scss'
 
-export default {
+export default defineComponent({
   name: 'Vue3PersianDatetimePicker',
   components: {
     SimpleMode,
@@ -551,8 +552,9 @@ export default {
       updateNowInterval: null,
       locales: ['fa'],
       localeData: coreModule.locale,
-      windowWidth: window.innerWidth,
-      popoverPlace: 'bottom-right'
+      windowWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
+      popoverPlace: 'bottom-right',
+      _keydownHandler: null
     }
   },
   computed: {
@@ -877,10 +879,12 @@ export default {
         if (this.type === 'datetime' && this.view === 'day') this.goStep('d')
         if (this.view !== 'day') this.goStep(this.shortCodes[this.view] || 'd')
         this.$nextTick(() => {
-          if (this.appendTo) {
+          if (this.appendTo && typeof document !== 'undefined') {
             try {
-              let container = document.querySelector(this.appendTo)
-              container.appendChild(this.$refs.picker)
+              const container = document.querySelector(this.appendTo)
+              if (container && this.$refs.picker) {
+                container.appendChild(this.$refs.picker)
+              }
             } catch (er) {
               console.warn(`Cannot append picker to "${this.appendTo}"!`)
             }
@@ -920,40 +924,55 @@ export default {
     },
     displayValue: {
       immediate: true,
-      handler: function(displayValue) {
-        if (!this.customInput) return
+      handler: function (displayValue) {
+        if (!this.customInput || typeof document === 'undefined') return
         const customInput = document.querySelector(this.customInput)
         if (customInput) customInput.value = displayValue
       }
     }
   },
   created() {
+    if (typeof window === 'undefined') return
     this.updateNowInterval = setInterval(() => {
       this.now = this.core.moment()
     }, 1000)
   },
   mounted() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+
     this.$nextTick(() => {
       if (this.customInputElement && !this.editable)
         addLiveEvent(this.customInputElement, 'click', this.focus)
       if (this.customInput && this.editable)
         addLiveEvent(this.customInput, 'blur', this.setOutput)
     })
-    document.body.addEventListener('keydown', e => {
-      e = e || event
-      let code = e.keyCode
-      if ((code === 9 || code === 27) && this.visible) this.visible = false
-    })
+
+    this._keydownHandler = (e) => {
+      const code = e.keyCode || e.key
+      if ((code === 9 || code === 27 || code === 'Tab' || code === 'Escape') && this.visible) {
+        this.visible = false
+      }
+    }
+    document.body.addEventListener('keydown', this._keydownHandler)
     window.addEventListener('resize', this.onWindowResize, true)
     window.addEventListener('mousedown', this.onWindowClick, true)
   },
   beforeUnmount() {
-    window.clearInterval(this.updateNowInterval)
-    window.removeEventListener('resize', this.onWindowResize, true)
-    window.removeEventListener('mousedown', this.onWindowClick, true)
-    let picker = this.$refs.picker
-    if (this.appendTo && picker && picker.$el && picker.$el.parentNode) {
-      picker.$el.parentNode.removeChild(picker.$el)
+    if (typeof window !== 'undefined') {
+      if (this.updateNowInterval) {
+        clearInterval(this.updateNowInterval)
+        this.updateNowInterval = null
+      }
+      window.removeEventListener('resize', this.onWindowResize, true)
+      window.removeEventListener('mousedown', this.onWindowClick, true)
+    }
+    if (typeof document !== 'undefined' && this._keydownHandler) {
+      document.body.removeEventListener('keydown', this._keydownHandler)
+      this._keydownHandler = null
+    }
+    const picker = this.$refs.picker
+    if (this.appendTo && picker && picker.parentNode) {
+      picker.parentNode.removeChild(picker)
     }
   },
   methods: {
@@ -1412,12 +1431,14 @@ export default {
       return value
     },
     onWindowResize() {
-      this.windowWidth = window.innerWidth
+      if (typeof window !== 'undefined') {
+        this.windowWidth = window.innerWidth
+      }
     },
     onWindowClick(event) {
       if (this.isPopover && this.$refs.picker && this.$refs.inputGroup) {
-        let isOnPicker = this.$refs.picker.contains(event.target)
-        let isOnInput = this.$refs.inputGroup.contains(event.target)
+        const isOnPicker = this.$refs.picker.contains(event.target)
+        const isOnInput = this.$refs.inputGroup.contains(event.target)
         if (isOnPicker) event.preventDefault()
         if (!isOnPicker && !isOnInput) {
           setTimeout(() => (this.visible = false), this.editable ? 500 : 0)
@@ -1425,8 +1446,8 @@ export default {
       }
     },
     setPlacement() {
-      if (!this.isPopover) return
-      let allowed = [
+      if (!this.isPopover || typeof window === 'undefined') return
+      const allowed = [
         'top-left',
         'top-right',
         'bottom-right',
@@ -1436,38 +1457,40 @@ export default {
         'right-top',
         'right-bottom'
       ]
-      if (allowed.indexOf(this.popover) !== -1)
-        return (this.popoverPlace = this.popover)
+      if (allowed.indexOf(this.popover) !== -1) {
+        this.popoverPlace = this.popover
+        return
+      }
 
       this.popoverPlace = 'bottom-right'
       this.$nextTick(() => {
-        let placement = ['bottom', 'right']
-        let container = this.$refs.container
-        let rect = container.getBoundingClientRect()
-        let left = rect.left
-        let bottom = window.innerHeight - rect.bottom
+        const container = this.$refs.container
+        if (!container) return
+        const placement = ['bottom', 'right']
+        const rect = container.getBoundingClientRect()
+        const left = rect.left
+        const bottom = window.innerHeight - rect.bottom
         if (bottom <= 0) placement[0] = 'top'
         if (left <= 0) placement[1] = 'left'
         this.popoverPlace = placement.join('-')
       })
     }
   },
-  install(Vue, options) {
-    let component = this
-    options = extend(
+  install(app, options = {}) {
+    const opts = extend(
       {
-        name: 'data-picker',
+        name: 'DatePicker',
         props: {}
       },
       options
     )
 
-    for (let k in options.props) {
-      if (component.props.hasOwnProperty(k)) {
-        component.props[k].default = options.props[k]
+    for (const k in opts.props) {
+      if (Object.prototype.hasOwnProperty.call(this.props, k)) {
+        this.props[k].default = opts.props[k]
       }
     }
-    Vue.component(options.name, component)
+    app.component(opts.name, this)
   }
-}
+})
 </script>

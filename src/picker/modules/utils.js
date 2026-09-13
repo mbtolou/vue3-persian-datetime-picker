@@ -102,16 +102,20 @@ export const isSameDay = (a, b) => {
 export const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
 export const scrollIntoCenter = function (element, duration = 200, callback) {
+  if (typeof window === "undefined" || !element || !element.parentNode) {
+    if (typeof callback === "function") callback();
+    return;
+  }
+
   const parent = element.parentNode;
-  let startingTop = parent.scrollTop;
-  let parentCenter = parent.offsetHeight / 2;
-  let elementCenter = element.offsetHeight / 2;
-  let distance = element.offsetTop - startingTop - parentCenter + elementCenter;
+  const startingTop = parent.scrollTop;
+  const parentCenter = parent.offsetHeight / 2;
+  const elementCenter = element.offsetHeight / 2;
+  const distance =
+    element.offsetTop - startingTop - parentCenter + elementCenter;
   let start;
   const done = () => {
-    if (typeof callback === "function") {
-      callback();
-    }
+    if (typeof callback === "function") callback();
   };
 
   if (!duration) {
@@ -122,8 +126,8 @@ export const scrollIntoCenter = function (element, duration = 200, callback) {
 
   window.requestAnimationFrame(function step(timestamp) {
     if (!start) start = timestamp;
-    let time = timestamp - start;
-    let percent = Math.min(time / duration, 1);
+    const time = timestamp - start;
+    const percent = Math.min(time / duration, 1);
     parent.scrollTo(0, startingTop + distance * percent);
 
     if (time < duration) {
@@ -135,15 +139,19 @@ export const scrollIntoCenter = function (element, duration = 200, callback) {
 };
 
 export const addEventListener = function (el, type, handler) {
+  if (typeof document === "undefined") return;
   if (typeof el === "string") el = document.querySelector(el);
-  if (!el) throw new Error("Cant find custom element: " + el);
+  if (!el) return;
   if (el.addEventListener) el.addEventListener(type, handler, true);
-  else el.attachEvent("on" + type, handler, true);
+  else if (el.attachEvent) el.attachEvent("on" + type, handler);
 };
 
 export const addLiveEvent = function (selector, event, callback, context) {
+  if (typeof document === "undefined") return;
   addEventListener(context || document, event, function (e) {
-    if (e.target.closest(selector)) callback.call(e.target, e);
+    if (e.target && e.target.closest && e.target.closest(selector)) {
+      callback.call(e.target, e);
+    }
   });
 };
 

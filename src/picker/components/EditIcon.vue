@@ -13,13 +13,8 @@
   </svg>
 </template>
 
-<script>
-export default {
-  props: {
-    fill: {
-      type: String,
-      default: '#f9f9f9'
-    }
-  }
-}
+<script setup>
+defineProps({
+  fill: { type: String, default: '#f9f9f9' }
+})
 </script>

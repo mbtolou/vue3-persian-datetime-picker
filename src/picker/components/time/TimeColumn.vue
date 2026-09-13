@@ -53,90 +53,99 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, nextTick } from 'vue'
 import Btn from '../Btn.vue'
 import Arrow from '../Arrow.vue'
-import { modelMixin } from '../../modules/mixins.js'
 
-export default {
-  name: 'TimeColumn',
-  components: { Btn, Arrow },
-  mixins: [modelMixin],
-  props: {
-    jump: { type: Number, default: 1 },
-    formatter: { type: Function, default: null },
-    attributes: { type: Object, default: () => ({}) }
+const modelValue = defineModel({ type: [String, Number], default: '' })
+const props = defineProps({
+  jump: { type: Number, default: 1 },
+  formatter: { type: Function, default: (v) => v },
+  attributes: { type: Object, default: () => ({}) }
+})
+const emit = defineEmits(['filled'])
+
+const directionClass = ref('direction-next')
+const classFastCounter = ref('')
+const transitionSpeed = ref(300)
+const timeoutId = ref(null)
+const lastUpdate = ref(Date.now())
+const isInputFocused = ref(false)
+const inputValue = ref('')
+const input = ref(null)
+const selfValue = ref(String(modelValue.value ?? ''))
+
+watch(
+  modelValue,
+  (val) => {
+    const str = String(val ?? '')
+    if (str !== selfValue.value) selfValue.value = str
   },
-  emits: ['filled'],
-  data() {
-    return {
-      directionClass: 'direction-next',
-      classFastCounter: '',
-      transitionSpeed: 300,
-      timeout: false,
-      lastUpdate: new Date().getTime(),
-      isInputFocused: false,
-      inputValue: ''
-    }
-  },
-  watch: {
-    selfValue: {
-      handler(val, old) {
-        if (old) this.setDirection(val, old)
-        this.inputValue = this.selfValue
-        this.$nextTick(() => {
-          if (this.modelValue.toString() !== this.selfValue.toString())
-            this.selfValue = this.modelValue
-        })
-      },
-      immediate: true
-    },
-    isInputFocused(focused) {
-      if (focused) {
-        this.inputValue = this.selfValue
-        this.$nextTick(() => {
-          this.$refs.input.select()
-        })
-      } else if (this.inputValue) {
-        this.onInputSubmit()
+  { immediate: true }
+)
+
+watch(
+  selfValue,
+  (val, old) => {
+    if (old !== undefined && old !== '') setDirection(val, old)
+    inputValue.value = String(val)
+    nextTick(() => {
+      if (String(modelValue.value) !== String(selfValue.value)) {
+        modelValue.value = selfValue.value
       }
-    }
+    })
   },
-  methods: {
-    update(value) {
-      this.selfValue = +this.selfValue + value * this.jump
+  { immediate: true }
+)
 
-      let now = new Date().getTime(),
-        def = now - this.lastUpdate
-      if (20 < def && def < 300) this.transitionSpeed = def
-      this.lastUpdate = now
+watch(isInputFocused, (focused) => {
+  if (focused) {
+    inputValue.value = String(selfValue.value)
+    nextTick(() => input.value?.select?.())
+  } else if (inputValue.value) {
+    onInputSubmit()
+  }
+})
 
-      window.clearTimeout(this.timeout)
-      this.timeout = window.setTimeout(() => {
-        this.transitionSpeed = 300
-      }, 300)
-    },
-    wheelUpdate(e) {
-      const delta = this.jump
-      const goUp = (e.wheelDeltaY || -e.detail) > 0
-      this.update(goUp ? delta : -delta)
-    },
-    fastUpdateCounter(e) {
-      if (!e) this.transitionSpeed = 300
-      this.classFastCounter = e ? 'fast-updating' : ''
-    },
-    setDirection(val, old) {
-      if (val * 1 === old * 1) return
-      this.directionClass = val > old ? 'direction-next' : 'direction-prev'
-    },
-    onInputSubmit() {
-      this.selfValue = this.inputValue
-      this.transitionSpeed = 0
-    },
-    onInputChange(event) {
-      if (event.target.value.length >= this.selfValue.length)
-        this.$emit('filled')
-    }
+function setDirection(val, old) {
+  if (+val === +old) return
+  directionClass.value = +val > +old ? 'direction-next' : 'direction-prev'
+}
+
+function update(value) {
+  selfValue.value = String(+selfValue.value + value * props.jump)
+  const now = Date.now()
+  const def = now - lastUpdate.value
+  if (20 < def && def < 300) transitionSpeed.value = def
+  lastUpdate.value = now
+  if (typeof window !== 'undefined') {
+    window.clearTimeout(timeoutId.value)
+    timeoutId.value = window.setTimeout(() => {
+      transitionSpeed.value = 300
+    }, 300)
+  }
+}
+
+function wheelUpdate(e) {
+  const delta = props.jump
+  const goUp = (e.wheelDeltaY || -e.detail) > 0
+  update(goUp ? delta : -delta)
+}
+
+function fastUpdateCounter(e) {
+  if (!e) transitionSpeed.value = 300
+  classFastCounter.value = e ? 'fast-updating' : ''
+}
+
+function onInputSubmit() {
+  selfValue.value = inputValue.value
+  transitionSpeed.value = 0
+}
+
+function onInputChange(event) {
+  if (event.target.value.length >= String(selfValue.value).length) {
+    emit('filled')
   }
 }
 </script>

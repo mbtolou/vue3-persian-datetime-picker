@@ -25,16 +25,19 @@ export default defineConfig({
           moment: "moment",
           "moment-jalaali": "moment"
         },
-        exports: "named"
+        exports: "default",
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith(".css")) {
+            return "vue3-persian-datetime-picker.css";
+          }
+          return assetInfo.name;
+        }
       }
     },
+    cssCodeSplit: false,
     sourcemap: false,
-    // غیرفعال کردن minify
-    minify: false
-  },
-  css: {
-    preprocessorOptions: {
-    }
+    minify: "esbuild",
+    emptyOutDir: false
   },
   resolve: {
     alias: {

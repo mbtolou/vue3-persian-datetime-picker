@@ -16,21 +16,18 @@
   </svg>
 </template>
 
-<script>
-export default {
-  props: {
-    fill: { type: String, default: '#a2a2a2' },
-    direction: { type: String, default: 'up' }
-  },
-  computed: {
-    rotation() {
-      return {
-        up: 90,
-        left: 0,
-        right: 180,
-        down: -90
-      }[this.direction]
-    }
-  }
-}
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  fill: { type: String, default: '#a2a2a2' },
+  direction: { type: String, default: 'up' }
+})
+
+const rotation = computed(() => ({
+  up: 90,
+  left: 0,
+  right: 180,
+  down: -90
+}[props.direction]))
 </script>

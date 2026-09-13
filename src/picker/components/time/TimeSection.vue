@@ -21,88 +21,88 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, ref, watch } from 'vue'
 import TimeColumn from './TimeColumn.vue'
 
-export default {
-  name: 'TimeSection',
-  components: { TimeColumn },
-  props: {
-    date: { type: Object, default: () => ({}) },
-    time: { type: Object, default: () => ({}) },
-    jumpMinute: { type: Number, default: 1 },
-    roundMinute: { type: Boolean, default: false },
-    isDisableTime: { type: Boolean, default: false },
-    getHighlights: { type: Function, default: null },
+const props = defineProps({
+  date: { type: Object, default: () => ({}) },
+  time: { type: Object, default: () => ({}) },
+  jumpMinute: { type: Number, default: 1 },
+  roundMinute: { type: Boolean, default: false },
+  isDisableTime: { type: Boolean, default: false },
+  getHighlights: { type: Function, default: null },
+  isMore: { type: Function, default: null },
+  isLower: { type: Function, default: null },
+  minDate: { type: [Object, Boolean], default: false },
+  maxDate: { type: [Object, Boolean], default: false },
+  selectedDates: { type: Array, default: () => [] },
+  convertToLocaleNumber: { type: Function, default: (v) => v },
+  type: { type: String, default: 'datetime' }
+})
 
-    isMore: { type: Function, default: null },
-    isLower: { type: Function, default: null },
-    minDate: { type: [Object, Boolean], default: false },
-    maxDate: { type: [Object, Boolean], default: false },
+const emit = defineEmits(['update:date', 'update:time'])
+const hour = ref(null)
+const minute = ref(null)
 
-    selectedDates: { type: Array, default: () => [] },
-    convertToLocaleNumber: { type: Function, default: null }
+const timeAttributes = computed(() => {
+  return props.getHighlights ? props.getHighlights('t', props.time) : {}
+})
+
+const hourModel = computed({
+  get() {
+    return props.time?.format?.('HH') ?? '00'
   },
-  emits: ['update:date', 'update:time'],
-  computed: {
-    timeAttributes() {
-      return this.getHighlights('t', this.time)
-    },
-    hourModel: {
-      get() {
-        return this.time.format('HH')
-      },
-      set(val) {
-        this.setTime(val, 'hours')
-      }
-    },
-    minuteModel: {
-      get() {
-        return this.time.format('mm')
-      },
-      set(val) {
-        this.setTime(val, 'minutes')
-      }
-    }
-  },
-  watch: {
-    time: {
-      handler() {
-        if (this.roundMinute) {
-          let time = this.time.clone()
-          let jm = this.jumpMinute
-          let m = (jm - (time.minute() % jm)) % jm
-          time.add({ m })
-          if (time.valueOf() !== this.time.valueOf()) {
-            this.$emit('update:time', time)
-            this.selectedDates.forEach(d => d.set({ m: time.minute() }))
-          }
-        }
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    setTime(v, k) {
-      let time = this.time.clone()
-
-      time.set(k, v)
-
-      if (this.type !== 'time') {
-        let date = this.date.clone()
-        time.set({ year: date.year(), month: date.month(), date: date.date() })
-        date.set({ hour: time.hour(), minute: time.minute() })
-        this.$emit('update:date', date)
-      }
-
-      if (this.isLower(time)) time = this.minDate.clone()
-      if (this.isMore(time)) time = this.maxDate.clone()
-
-      this.$emit('update:time', time)
-    },
-    focusNext() {
-      this.$refs.minute.$el.querySelector('input').focus()
-    }
+  set(val) {
+    setTime(val, 'hours')
   }
+})
+
+const minuteModel = computed({
+  get() {
+    return props.time?.format?.('mm') ?? '00'
+  },
+  set(val) {
+    setTime(val, 'minutes')
+  }
+})
+
+function setTime(v, k) {
+  if (!props.time?.clone) return
+  let time = props.time.clone()
+  time.set(k, v)
+
+  if (props.type !== 'time' && props.date?.clone) {
+    let date = props.date.clone()
+    time.set({ year: date.year(), month: date.month(), date: date.date() })
+    date.set({ hour: time.hour(), minute: time.minute() })
+    emit('update:date', date)
+  }
+
+  if (props.isLower?.(time)) time = props.minDate.clone()
+  if (props.isMore?.(time)) time = props.maxDate.clone()
+
+  emit('update:time', time)
 }
+
+function focusNext() {
+  const el = minute.value?.$el?.querySelector?.('input') || minute.value
+  el?.focus?.()
+}
+
+watch(
+  () => props.time,
+  () => {
+    if (!props.roundMinute || !props.time?.clone) return
+    let time = props.time.clone()
+    let jm = props.jumpMinute
+    let m = (jm - (time.minute() % jm)) % jm
+    time.add({ m })
+    if (time.valueOf() !== props.time.valueOf()) {
+      emit('update:time', time)
+      props.selectedDates.forEach((d) => d.set({ m: time.minute() }))
+    }
+  },
+  { immediate: true }
+)
 </script>

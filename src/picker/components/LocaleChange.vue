@@ -4,27 +4,27 @@
   </ul>
 </template>
 
-<script>
-export default {
-  name: 'LocaleChange',
-  props: {
-    locales: { type: Array, default: () => [] },
-    core: { type: Object, default: () => ({}) },
-    localeData: { type: Object, default: () => ({}) }
-  },
-  emits: ['change'],
-  computed: {
-    activeItem() {
-      let activeIndex = this.locales.indexOf(this.localeData.name) + 1
-      if (activeIndex === this.locales.length) activeIndex = 0
-      return String(this.locales[activeIndex])
-    },
-    label() {
-      return (
-        this.core.localesConfig[this.activeItem].lang.label ||
-        this.activeItem.toUpperCase()
-      )
-    }
-  }
-}
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  locales: { type: Array, default: () => [] },
+  core: { type: Object, default: () => ({}) },
+  localeData: { type: Object, default: () => ({}) }
+})
+
+defineEmits(['change'])
+
+const activeItem = computed(() => {
+  let activeIndex = props.locales.indexOf(props.localeData.name) + 1
+  if (activeIndex === props.locales.length) activeIndex = 0
+  return String(props.locales[activeIndex])
+})
+
+const label = computed(() => {
+  return (
+    props.core.localesConfig?.[activeItem.value]?.lang?.label ||
+    activeItem.value.toUpperCase()
+  )
+})
 </script>

@@ -192,53 +192,43 @@
   </div>
 </template>
 
-<script>
-import Vue3PersianDatetimePicker from '@/picker/Vue3PersianDatetimePicker.vue'
+<script setup>
+import { ref } from 'vue'
+import DatePicker from '@/picker/Vue3PersianDatetimePicker.vue'
 
-export default {
-  name: 'Home',
-  components: {
-    DatePicker: Vue3PersianDatetimePicker
-  },
-  data() {
-    return {
-      basicDate: '',
-      datetime: '',
-      timeOnly: '',
-      yearOnly: '',
-      monthOnly: '',
-      dateRange: '',
-      multipleDates: '',
-      inlineDate: '',
-      simpleDate: '',
-      customColor: '',
-      limitedDate: '',
-      formattedDate: '',
-      enDate: '',
-      compactTime: '',
-      disabledDate: '1403/01/01',
-      editableDate: ''
-    }
-  },
-  methods: {
-    resetAll() {
-      this.basicDate = ''
-      this.datetime = ''
-      this.timeOnly = ''
-      this.yearOnly = ''
-      this.monthOnly = ''
-      this.dateRange = ''
-      this.multipleDates = ''
-      this.inlineDate = ''
-      this.simpleDate = ''
-      this.customColor = ''
-      this.limitedDate = ''
-      this.formattedDate = ''
-      this.enDate = ''
-      this.compactTime = ''
-      this.editableDate = ''
-    }
-  }
+const basicDate = ref('')
+const datetime = ref('')
+const timeOnly = ref('')
+const yearOnly = ref('')
+const monthOnly = ref('')
+const dateRange = ref('')
+const multipleDates = ref('')
+const inlineDate = ref('')
+const simpleDate = ref('')
+const customColor = ref('')
+const limitedDate = ref('')
+const formattedDate = ref('')
+const enDate = ref('')
+const compactTime = ref('')
+const disabledDate = ref('1403/01/01')
+const editableDate = ref('')
+
+function resetAll() {
+  basicDate.value = ''
+  datetime.value = ''
+  timeOnly.value = ''
+  yearOnly.value = ''
+  monthOnly.value = ''
+  dateRange.value = ''
+  multipleDates.value = ''
+  inlineDate.value = ''
+  simpleDate.value = ''
+  customColor.value = ''
+  limitedDate.value = ''
+  formattedDate.value = ''
+  enDate.value = ''
+  compactTime.value = ''
+  editableDate.value = ''
 }
 </script>
 
